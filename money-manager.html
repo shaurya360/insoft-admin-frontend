@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Money Manager - INSOFT TECHNOLOGY</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f4f9;
+      color: #1f2937;
+      font-family: Arial, sans-serif;
+      padding: 32px 18px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+      padding: 26px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #0056b3;
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 {
+      margin: 0;
+      color: #0056b3;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+    .action-group {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-left: auto;
+      margin-right: 26px;
+      transform: translateX(-20px);
+    }
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 1.2;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s ease;
+    }
+    button:hover { opacity: 0.96; }
+    .btn-primary { background: #0056b3; color: #fff; }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-success { background: #198754; color: #fff; }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 20px 0 24px;
+      align-items: stretch;
+    }
+    .summary-card {
+      border: 1px solid #dfe7f1;
+      border-radius: 12px;
+      padding: 18px;
+      background: #f8fbff;
+      transition: all 0.2s ease;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .summary-card.positive {
+      background: linear-gradient(135deg, #eafaf1 0%, #dff7e8 100%);
+      border-color: #afd9be;
+    }
+    .summary-card.negative {
+      background: linear-gradient(135deg, #fff0ef 0%, #ffe5e2 100%);
+      border-color: #f3b0a6;
+    }
+    .summary-label {
+      color: #58708a;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    .summary-value {
+      font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+      font-weight: bold;
+      color: #1f2937;
+      line-height: 1.2;
+    }
+    .summary-value.positive { color: #1b7d4f; }
+    .summary-value.negative { color: #b42318; }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .toolbar select,
+    .toolbar input,
+    .modal input,
+    .modal textarea,
+    .modal select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cfd8e3;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+    }
+    .toolbar select {
+      max-width: 220px;
+      min-width: 180px;
+    }
+    .toolbar .search-wrap {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+      min-width: 240px;
+      flex-wrap: wrap;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    th, td {
+      padding: 12px 10px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      background: #f8fafc;
+      color: #1f2937;
+      font-weight: bold;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .status-badge.to_us {
+      background: #e7f9ef;
+      color: #1b7d4f;
+    }
+    .status-badge.we_owe {
+      background: #feece9;
+      color: #b42318;
+    }
+    .status-badge.pending {
+      background: #fff4d6;
+      color: #a16207;
+    }
+    .status-badge.paid {
+      background: #e0f2fe;
+      color: #0f766e;
+    }
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .amount {
+      font-weight: bold;
+    }
+    .amount.to_us { color: #1b7d4f; }
+    .amount.we_owe { color: #b42318; }
+    .empty-state {
+      text-align: center;
+      padding: 28px 14px;
+      color: #4b5563;
+      background: #f9fafb;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 1000;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      background: #fff;
+      width: min(620px, 100%);
+      border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 24px;
+      color: #0056b3;
+    }
+    .close-btn {
+      border: none;
+      background: transparent;
+      color: #4b5563;
+      font-size: 30px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .field.full {
+      grid-column: 1 / -1;
+    }
+    .field label {
+      font-size: 12px;
+      font-weight: bold;
+      color: #555;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 20px 20px;
+    }
+    @media (max-width: 720px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar .search-wrap { width: 100%; }
+      .topbar { align-items: flex-start; }
+      .action-group { width: 100%; justify-content: flex-start; transform: none; margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <h1>Money Manager</h1>
+      <div class="action-group">
+        <button type="button" class="btn-secondary" id="openClientModalBtn">+ Add Client</button>
+        <button type="button" class="btn-primary" id="openVendorModalBtn">+ Add Vendor</button>
+        <button type="button" class="btn-success" id="openRecordModalBtn">+ Add Record</button>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card positive" id="receivableCard">
+        <div class="summary-label">Receivable</div>
+        <div class="summary-value positive" id="receivableValue">₹0</div>
+      </div>
+      <div class="summary-card negative" id="payableCard">
+        <div class="summary-label">Payable</div>
+        <div class="summary-value negative" id="payableValue">₹0</div>
+      </div>
+      <div class="summary-card" id="netCard">
+        <div class="summary-label">Net Flow</div>
+        <div class="summary-value" id="netFlowValue">₹0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input id="recordSearch" type="text" placeholder="Search party name or notes" aria-label="Search by party name or notes">
+        <select id="directionFilter" aria-label="Filter by record direction">
+          <option value="all">All Records</option>
+          <option value="to_us">Receivable</option>
+          <option value="we_owe">Payable</option>
+        </select>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:15%;">Party</th>
+          <th style="width:10%;">Type</th>
+          <th style="width:15%;">Contact</th>
+          <th style="width:10%;">Due Date</th>
+          <th style="width:10%;">Amount</th>
+          <th style="width:10%;">Direction</th>
+          <th style="width:10%;">Payment</th>
+          <th style="width:15%;">Notes</th>
+          <th style="width:15%;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="moneyTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="modal-backdrop" id="recordModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle">
+      <div class="modal-header">
+        <h2 id="recordModalTitle">Add Cash Flow Record</h2>
+        <button class="close-btn" type="button" data-close="record" aria-label="Close">×</button>
+      </div>
+      <form id="moneyRecordForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="recordPartySelect">Party Name</label>
+              <select id="recordPartySelect" required>
+                <option value="">Select vendor or client</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="recordPartyType">Type</label>
+              <input id="recordPartyType" type="text" readonly>
+            </div>
+
+            <div class="field">
+              <label for="recordDueDate">Due Date</label>
+              <input id="recordDueDate" type="date" required>
+            </div>
+
+            <div class="field">
+              <label for="recordPhone">Phone</label>
+              <input id="recordPhone" type="text" readonly>
+            </div>
+
+            <div class="field full">
+              <label for="recordAddress">Address</label>
+              <input id="recordAddress" type="text" readonly>
+            </div>
+
+            <div class="field">
+              <label for="recordAmount">Amount</label>
+              <input id="recordAmount" type="number" min="1" step="0.01" required>
+            </div>
+
+            <div class="field">
+              <label for="recordDirection">Direction</label>
+              <select id="recordDirection" required>
+                <option value="to_us">We receive</option>
+                <option value="we_owe">We pay</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <label for="recordNotes">Notes</label>
+              <textarea id="recordNotes" rows="3" placeholder="Invoice reference, reason, remarks..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="record">Cancel</button>
+          <button type="submit" class="btn-primary">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="clientModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
+      <div class="modal-header">
+        <h2 id="clientModalTitle">Add Client</h2>
+        <button class="close-btn" type="button" data-close="client" aria-label="Close">×</button>
+      </div>
+      <form id="clientForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="clientName">Client Name</label>
+              <input id="clientName" type="text" required>
+            </div>
+            <div class="field">
+              <label for="clientPhone">Phone No.</label>
+              <input id="clientPhone" type="tel" required>
+            </div>
+            <div class="field">
+              <label for="clientAddress">Address</label>
+              <input id="clientAddress" type="text" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="client">Cancel</button>
+          <button type="submit" class="btn-primary">Save Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="vendorModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="vendorModalTitle">
+      <div class="modal-header">
+        <h2 id="vendorModalTitle">Add Vendor</h2>
+        <button class="close-btn" type="button" data-close="vendor" aria-label="Close">×</button>
+      </div>
+      <form id="vendorForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="vendorName">Vendor Name</label>
+              <input id="vendorName" type="text" required>
+            </div>
+            <div class="field">
+              <label for="vendorPhone">Phone No.</label>
+              <input id="vendorPhone" type="tel" required>
+            </div>
+            <div class="field">
+              <label for="vendorAddress">Address</label>
+              <input id="vendorAddress" type="text" required>
+            </div>
+            <div class="field full">
+              <label for="vendorProducts">Products / Categories</label>
+              <input id="vendorProducts" type="text" placeholder="e.g. HP Laptops, Monitors, Printers">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close="vendor">Cancel</button>
+          <button type="submit" class="btn-primary">Save Vendor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const recordSearch = document.getElementById('recordSearch');
+    const directionFilter = document.getElementById('directionFilter');
+    const moneyTableBody = document.getElementById('moneyTableBody');
+    const receivableCard = document.getElementById('receivableCard');
+    const payableCard = document.getElementById('payableCard');
+    const netCard = document.getElementById('netCard');
+    const receivableValue = document.getElementById('receivableValue');
+    const payableValue = document.getElementById('payableValue');
+    const netFlowValue = document.getElementById('netFlowValue');
+    const recordPartySelect = document.getElementById('recordPartySelect');
+    const recordPartyType = document.getElementById('recordPartyType');
+    const recordPhone = document.getElementById('recordPhone');
+    const recordAddress = document.getElementById('recordAddress');
+    const recordDueDate = document.getElementById('recordDueDate');
+    const recordAmount = document.getElementById('recordAmount');
+    const recordDirection = document.getElementById('recordDirection');
+    const recordNotes = document.getElementById('recordNotes');
+
+    const API_BASE = 'https://insoft-admin-backend.onrender.com';
+    const state = { parties: [], records: [] };
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 2,
+      }).format(Number(value || 0));
+    }
+
+    async function fetchJSON(url, options = {}) {
+      const response = await fetch(`${API_BASE}${url}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+      });
+      const payload = await response.text();
+      if (!response.ok) {
+        throw new Error(payload || 'Request failed');
+      }
+      return payload ? JSON.parse(payload) : null;
+    }
+
+    function closeModal(name) {
+      const modal = document.getElementById(`${name}ModalBackdrop`);
+      if (modal) modal.classList.remove('show');
+    }
+
+    function openModal(name) {
+      const modal = document.getElementById(`${name}ModalBackdrop`);
+      if (modal) modal.classList.add('show');
+    }
+
+    function renderPartySelect() {
+      const options = ['<option value="">Select vendor or client</option>']
+        .concat(state.parties.map((party) => `
+          <option value="${party.name}" data-type="${party.type}" data-phone="${party.phone || ''}" data-address="${party.address || ''}">
+            ${party.name} (${party.type})
+          </option>
+        `));
+      recordPartySelect.innerHTML = options.join('');
+    }
+
+    function handlePartySelection() {
+      const selected = recordPartySelect.selectedOptions[0];
+      if (!selected || !selected.value) {
+        recordPartyType.value = '';
+        recordPhone.value = '';
+        recordAddress.value = '';
+        return;
+      }
+
+      recordPartyType.value = selected.dataset.type || 'Vendor';
+      recordPhone.value = selected.dataset.phone || '';
+      recordAddress.value = selected.dataset.address || '';
+    }
+
+    function getVisibleRecords() {
+      const searchValue = recordSearch.value.trim().toLowerCase();
+      const directionValue = directionFilter.value;
+
+      return state.records.filter((record) => {
+        const matchesText = !searchValue || 
+          `${record.partyName} ${record.notes}`.toLowerCase().includes(searchValue);
+        const matchesDirection = directionValue === 'all' || record.direction === directionValue;
+        return matchesText && matchesDirection;
+      });
+    }
+
+    function renderSummary() {
+      const receivable = state.records
+        .filter((record) => record.direction === 'to_us' && record.status !== 'paid')
+        .reduce((sum, record) => sum + Number(record.amount || 0), 0);
+      const payable = state.records
+        .filter((record) => record.direction === 'we_owe' && record.status !== 'paid')
+        .reduce((sum, record) => sum + Number(record.amount || 0), 0);
+      const net = receivable - payable;
+
+      receivableValue.textContent = formatCurrency(receivable);
+      payableValue.textContent = formatCurrency(payable);
+      netFlowValue.textContent = formatCurrency(net);
+
+      receivableCard.classList.toggle('positive', receivable > 0);
+      payableCard.classList.toggle('negative', payable > 0);
+      netCard.classList.toggle('positive', net >= 0);
+      netCard.classList.toggle('negative', net < 0);
+
+      receivableValue.classList.toggle('positive', receivable >= 0);
+      receivableValue.classList.toggle('negative', receivable < 0);
+      payableValue.classList.toggle('positive', payable >= 0);
+      payableValue.classList.toggle('negative', payable > 0);
+      netFlowValue.classList.toggle('positive', net >= 0);
+      netFlowValue.classList.toggle('negative', net < 0);
+    }
+
+    function renderTable() {
+      const records = getVisibleRecords();
+      if (!records.length) {
+        moneyTableBody.innerHTML = '<tr><td colspan="9" class="empty-state">No money records found.</td></tr>';
+        return;
+      }
+
+      moneyTableBody.innerHTML = records.map((record) => {
+        const directionClass = record.direction === 'to_us' ? 'to_us' : 'we_owe';
+        const directionText = record.direction === 'to_us' ? 'Receivable' : 'Payable';
+        const statusValue = record.status === 'paid' ? 'paid' : 'pending';
+        const statusText = record.status === 'paid' ? 'Paid' : 'Pending';
+        const toggleLabel = record.status === 'paid' ? 'Mark Unpaid' : 'Mark Paid';
+
+        return `
+          <tr>
+            <td>
+              <strong>${record.partyName}</strong>
+            </td>
+            <td>${record.partyType || 'Vendor'}</td>
+            <td>${record.phone || '-'}<br>${record.address || '-'}</td>
+            <td>${record.dueDate || '-'}</td>
+            <td class="amount ${directionClass}">${formatCurrency(record.amount)}</td>
+            <td><span class="status-badge ${directionClass}">${directionText}</span></td>
+            <td><span class="status-badge ${statusValue}">${statusText}</span></td>
+            <td>${record.notes || '-'}</td>
+            <td>
+              <div class="table-actions">
+                <button type="button" class="btn-success" data-toggle-paid-record="${record.id}">${toggleLabel}</button>
+                <button type="button" class="btn-danger" data-delete-record="${record.id}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadData() {
+      try {
+        const [parties, records] = await Promise.all([
+          fetchJSON('/api/parties'),
+          fetchJSON('/api/money-records')
+        ]);
+
+        state.parties = parties || [];
+        state.records = records || [];
+        renderPartySelect();
+        renderSummary();
+        renderTable();
+      } catch (error) {
+        alert(error.message || 'Could not load money manager data.');
+      }
+    }
+
+    document.getElementById('openRecordModalBtn').addEventListener('click', () => {
+      recordPartySelect.value = '';
+      recordPartyType.value = '';
+      recordPhone.value = '';
+      recordAddress.value = '';
+      recordDueDate.value = '';
+      recordAmount.value = '';
+      recordDirection.value = 'to_us';
+      recordNotes.value = '';
+      openModal('record');
+    });
+
+    document.getElementById('openClientModalBtn').addEventListener('click', () => openModal('client'));
+    document.getElementById('openVendorModalBtn').addEventListener('click', () => openModal('vendor'));
+
+    document.querySelectorAll('[data-close]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const name = button.getAttribute('data-close');
+        closeModal(name);
+      });
+    });
+
+    recordPartySelect.addEventListener('change', handlePartySelection);
+    recordSearch.addEventListener('input', renderTable);
+    directionFilter.addEventListener('change', renderTable);
+
+    document.getElementById('moneyRecordForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = {
+        partyName: recordPartySelect.value,
+        partyType: recordPartyType.value || 'Vendor',
+        phone: recordPhone.value,
+        address: recordAddress.value,
+        dueDate: recordDueDate.value,
+        amount: Number(recordAmount.value),
+        direction: recordDirection.value,
+        notes: recordNotes.value.trim(),
+      };
+
+      try {
+        const result = await fetchJSON('/api/money-records', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        state.records.unshift(result);
+        renderSummary();
+        renderTable();
+        closeModal('record');
+      } catch (error) {
+        alert(error.message || 'Unable to save the money record.');
+      }
+    });
+
+    document.getElementById('clientForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = {
+        name: document.getElementById('clientName').value.trim(),
+        phone: document.getElementById('clientPhone').value.trim(),
+        address: document.getElementById('clientAddress').value.trim(),
+      };
+
+      try {
+        const result = await fetchJSON('/api/clients', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        state.parties.unshift({
+          id: result.id,
+          type: 'Client',
+          name: result.name,
+          phone: result.phone,
+          address: result.address,
+        });
+        renderPartySelect();
+        closeModal('client');
+        document.getElementById('clientForm').reset();
+      } catch (error) {
+        alert(error.message || 'Unable to save the client.');
+      }
+    });
+
+    document.getElementById('vendorForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const productsInput = document.getElementById('vendorProducts').value.trim();
+      const payload = {
+        name: document.getElementById('vendorName').value.trim(),
+        phone: document.getElementById('vendorPhone').value.trim(),
+        address: document.getElementById('vendorAddress').value.trim(),
+        products: productsInput ? productsInput.split(',').map((item) => item.trim()).filter(Boolean) : [],
+      };
+
+      try {
+        const result = await fetchJSON('/api/vendors', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        state.parties.unshift({
+          id: result.id,
+          type: 'Vendor',
+          name: result.name,
+          phone: result.phone,
+          address: result.address,
+        });
+        renderPartySelect();
+        closeModal('vendor');
+        document.getElementById('vendorForm').reset();
+      } catch (error) {
+        alert(error.message || 'Unable to save the vendor.');
+      }
+    });
+
+    moneyTableBody.addEventListener('click', async (event) => {
+      const toggleButton = event.target.closest('[data-toggle-paid-record]');
+      if (toggleButton) {
+        const recordId = toggleButton.getAttribute('data-toggle-paid-record');
+        if (!recordId) return;
+
+        const record = state.records.find((item) => String(item.id) === String(recordId));
+        if (!record) return;
+
+        const nextStatus = record.status === 'paid' ? 'pending' : 'paid';
+        const confirmed = window.confirm(nextStatus === 'paid'
+          ? `Mark this transaction as paid for ${record.partyName}?`
+          : `Mark this transaction as unpaid for ${record.partyName}?`);
+        if (!confirmed) return;
+
+        try {
+          const updated = await fetchJSON(`/api/money-records/${recordId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              ...record,
+              status: nextStatus,
+            }),
+          });
+
+          state.records = state.records.map((item) => String(item.id) === String(recordId) ? updated : item);
+          renderSummary();
+          renderTable();
+        } catch (error) {
+          alert(error.message || 'Unable to update the payment status.');
+        }
+        return;
+      }
+
+      const deleteButton = event.target.closest('[data-delete-record]');
+      if (!deleteButton) return;
+
+      const recordId = deleteButton.getAttribute('data-delete-record');
+      if (!recordId) return;
+
+      const confirmed = window.confirm('Delete this money record?');
+      if (!confirmed) return;
+
+      try {
+        await fetchJSON(`/api/money-records/${recordId}`, { method: 'DELETE' });
+        state.records = state.records.filter((record) => String(record.id) !== String(recordId));
+        renderSummary();
+        renderTable();
+      } catch (error) {
+        alert(error.message || 'Unable to delete the record.');
+      }
+    });
+
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/", "destination": "/dashboard.html" },
+    { "source": "/quotation", "destination": "/index.html" },
+    { "source": "/vendor-list", "destination": "/vendor-list.html" },
+    { "source": "/money-manager", "destination": "/money-manager.html" }
+  ]
+}

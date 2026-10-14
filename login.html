@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Login - INSOFT TECHNOLOGY</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;background:#f4f4f9;margin:0;min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:20px;color:#333}
+    .card{background:#fff;width:100%;max-width:380px;padding:30px;border-radius:8px;
+      box-shadow:0 4px 6px rgba(0,0,0,.1)}
+    h2{margin:0 0 20px;color:#0056b3;border-bottom:2px solid #0056b3;padding-bottom:10px}
+    label{display:block;font-size:12px;font-weight:bold;color:#555;margin-bottom:5px}
+    input{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;font-size:14px;margin-bottom:15px}
+    button{width:100%;padding:11px;border:none;border-radius:4px;background:#0056b3;color:#fff;
+      font-weight:bold;cursor:pointer;font-size:14px}
+    button:hover{background:#004494}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    #msg{color:#dc3545;font-size:13px;min-height:18px;margin-bottom:10px}
+  </style>
+</head>
+<body>
+  <form class="card" id="f" autocomplete="on">
+    <h2>INSOFT TECHNOLOGY</h2>
+    <label for="u">Username</label>
+    <input id="u" name="username" type="text" autocomplete="username" required autofocus>
+    <label for="p">Password</label>
+    <input id="p" name="password" type="password" autocomplete="current-password" required>
+    <div id="msg"></div>
+    <button id="b" type="submit">Login</button>
+  </form>
+  <script>
+    const API_BASE = 'https://insoft-admin-backend.onrender.com';
+    const f = document.getElementById('f'), msg = document.getElementById('msg'), b = document.getElementById('b');
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = ''; b.disabled = true;
+      try {
+        const r = await fetch(`${API_BASE}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: f.u.value, password: f.p.value })
+        });
+        const d = await r.json();
+        if (r.ok) location.href = '/';
+        else msg.textContent = d.error || 'Login failed';
+      } catch { msg.textContent = 'Network error'; }
+      b.disabled = false;
+    });
+  </script>
+</body>
+</html>

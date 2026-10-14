@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSOFT TECHNOLOGY - Admin Portal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* === GLOBAL STYLES === */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* === APP UI STYLES (Hidden during print) === */
+        #app-container {
+            max-width: 1000px;
+            margin: 0 auto 30px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2, h3 {
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+            color: #0056b3;
+            margin-top: 0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            margin-bottom: 15px;
+        }
+
+        .input-group.large { flex: 2; }
+
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input, select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-add { background: #28a745; color: white; margin-bottom: 20px;}
+        .btn-add:hover { background: #218838; }
+        
+        .btn-remove { background: #dc3545; color: white; margin-top: 15px; margin-bottom: 15px;}
+        .btn-remove:hover { background: #c82333; }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .btn-preview { background: #0056b3; color: white; }
+        .btn-preview:hover { background: #004494; }
+        
+        .btn-print { background: #17a2b8; color: white; }
+        .btn-print:hover { background: #138496; }
+
+        .btn-pdf { background: #6f42c1; color: white; }
+        .btn-pdf:hover { background: #5a32a3; }
+
+        /* === QUOTATION TEMPLATE STYLES === */
+        #print-area-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        #print-area {
+            width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+        
+        .company-branding {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .company-logo {
+            max-height: 80px; 
+            width: auto;
+        }
+
+        .company-info h1 {
+            margin: 0 0 10px 0;
+            color: #0056b3;
+            font-size: 24px;
+        }
+
+        .company-info p {
+            margin: 3px 0;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .doc-info p, .client-info p, .greeting p, .terms p, .sign-off p {
+            margin: 3px 0;
+            font-size: 14px;
+        }
+
+        .doc-info {
+            text-align: right;
+        }
+
+        .doc-info h2 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+            border-bottom: none;
+            color: #333;
+        }
+
+        .client-info { margin-bottom: 20px; display: none; }
+        .greeting { margin-bottom: 20px; }
+
+        .quotation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .quotation-table th, .quotation-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .quotation-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        .bold { font-weight: bold; }
+
+        .terms { margin-top: 30px; margin-bottom: 40px; }
+        .terms h3 { margin-bottom: 10px; font-size: 16px; border: none; color: inherit; }
+
+        /* === MOBILE RESPONSIVENESS (Control Panel Only) === */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            #app-container { padding: 15px; }
+            .input-row { flex-direction: column; align-items: stretch; }
+            .input-group, .input-group.large { width: 100%; }
+            #app-container div[style*="display: flex"] { flex-direction: column; gap: 0 !important; }
+            .action-buttons { flex-direction: column; }
+            .action-buttons button { width: 100%; }
+        }
+
+        /* === PRINT MEDIA QUERIES === */
+        @media print {
+            body { background: #fff; padding: 0; }
+            #app-container { display: none !important; }
+            #print-area { box-shadow: none; padding: 0; width: 100%; min-width: 100%; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CONTROL PANEL / INPUT FORM -->
+    <div id="app-container">
+        <h2>Quotation/PO Builder</h2>
+
+        <div style="background: #eef2f7; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #d0d7de;">
+            <div class="input-group" style="margin-bottom: 0;">
+                <label style="font-size: 14px; color: #0056b3;">Select Document Type</label>
+                <select id="docType" onchange="ensureDocumentRef(); generatePreview()" style="font-weight: bold; background: white;">
+                    <option value="QUOTATION" selected>Quotation</option>
+                    <option value="PURCHASE ORDER">Purchase Order</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Client Details -->
+        <h3>Client Details</h3>
+        <div style="display: flex; gap: 15px;">
+            <div class="input-group large">
+                <label>Company / Person Name (Optional)</label>
+                <input type="text" id="clientName" list="partyList" placeholder="e.g. Spice Money Ltd" oninput="applyPartyAutocomplete(); generatePreview()">
+                <datalist id="partyList"></datalist>
+            </div>
+            <div class="input-group large">
+                <label>Address (Optional)</label>
+                <input type="text" id="clientAddress" placeholder="e.g. Noida, Uttar Pradesh, India" oninput="generatePreview()">
+            </div>
+        </div>
+        
+        <h3>Products</h3>
+        <div id="items-container">
+            <!-- Dynamic rows will be added here -->
+        </div>
+
+        <button class="btn-add" onclick="addItem()">+ Add Product</button>
+
+        <!-- Meta Inputs -->
+        <h3>Document Details</h3>
+        <div style="display: flex; gap: 15px;">
+            <div class="input-group">
+                <label>Ref No.</label>
+                <input type="text" id="refNo" oninput="generatePreview()">
+            </div>
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="docDate" oninput="generatePreview()">
+            </div>
+        </div>
+
+        <!-- Terms & Conditions Customization -->
+        <h3>Terms & Conditions</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <div class="input-group">
+                <label>Delivery Time (Days)</label>
+                <input type="number" id="tc-delivery" value="1" min="0" oninput="generatePreview()">
+            </div>
+            <div class="input-group">
+                <label>Quotation Validity (Days)</label>
+                <input type="number" id="tc-validity" value="7" min="0" oninput="generatePreview()">
+            </div>
+            <div class="input-group large">
+                <label>Payment Terms</label>
+                <select id="tc-payment-type" onchange="togglePaymentDays(); generatePreview()">
+                    <option value="Advanced payment">Advanced payment</option>
+                    <option value="On Delivery" selected>On Delivery</option>
+                    <option value="Days from delivery">Days from delivery</option>
+                </select>
+            </div>
+            <div class="input-group" id="tc-payment-days-group" style="display: none;">
+                <label>Days from Delivery</label>
+                <input type="number" id="tc-payment-days" value="15" min="1" oninput="generatePreview()">
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-preview" onclick="generatePreview()">Force Refresh Preview</button>
+            <button class="btn-print" onclick="window.print()">Print Document</button>
+            <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <!-- DOCUMENT TEMPLATE WRAPPER -->
+    <div id="print-area-wrapper">
+        <div id="print-area">
+            <div class="header-container">
+                <div class="company-branding">
+                    <img src="logo.jpg" alt="Company Logo" class="company-logo" onerror="this.style.display='none'">
+                    
+                    <div class="company-info">
+                        <h1>INSOFT TECHNOLOGY</h1>
+                        <p>203, Harsh Bhawan, (Near IndusInd Bank),</p>
+                        <p>64-65, Nehru Place, New Delhi - 110019</p>
+                        <p>Email: info@insofttechnology.in</p>
+                        <p>Tel: +91 9311005448</p>
+                    </div>
+                </div>
+                <div class="doc-info">
+                    <h2 id="out-doctitle">QUOTATION</h2>
+                    <p>Ref: <span id="out-ref">INS/2026/001</span></p>
+                    <p>Date: <span id="out-date">August 18, 2026</span></p>
+                    <p>Valid Until: <span id="out-valid">August 25, 2026</span></p>
+                </div>
+            </div>
+
+            <div class="client-info" id="out-client-block">
+                <p>To,</p>
+                <p class="bold" id="out-client-name"></p>
+                <p id="out-client-address"></p>
+            </div>
+
+            <div class="greeting">
+                <p>Dear Sir,</p>
+                <p id="out-greeting-text">Thank you for your interest in our services. Based on our discussions, please find our commercial proposal below:</p>
+            </div>
+
+            <table class="quotation-table" id="output-table">
+                <thead>
+                    <tr>
+                        <th class="text-center">S.No</th>
+                        <th>Product Description</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Unit Price (₹)</th>
+                        <th class="text-right">Total Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Rows injected via JS -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="border:none;"></td>
+                        <td class="bold text-right">Subtotal</td>
+                        <td class="bold text-right" id="out-subtotal">₹0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="border:none;"></td>
+                        <td class="bold text-right">GST (18%)</td>
+                        <td class="bold text-right" id="out-gst">₹0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="border:none;"></td>
+                        <td class="bold text-right">GRAND TOTAL</td>
+                        <td class="bold text-right" id="out-grandtotal">₹0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="terms">
+                <h3>Terms & Conditions</h3>
+                <p>1. GST: Inclusive (18%)</p>
+                <p>2. Delivery Time: <span id="out-tc-delivery">1</span> day(s) from the date of Purchase Order</p>
+                <p>3. Payment Terms: <span id="out-tc-payment">On Delivery</span></p>
+                <p>4. Quotation Validity: <span id="out-tc-validity">7</span> Days from the date of issue</p>
+            </div>
+
+            <div class="sign-off">
+                <p>Thanking you,</p>
+                <br><br>
+                <p class="bold">For INSOFT TECHNOLOGY</p>
+                <p>Alok Sharma</p>
+                <p>Phone: 9311005448</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_BASE = 'https://insoft-admin-backend.onrender.com';
+        let itemCount = 0;
+
+        window.onload = async () => {
+            const today = new Date();
+            document.getElementById('docDate').value = today.toISOString().split('T')[0];
+            await loadPartySuggestions();
+            ensureDocumentRef();
+            addItem();
+            togglePaymentDays();
+            generatePreview();
+        };
+
+        async function loadPartySuggestions() {
+            try {
+                const response = await fetch(`${API_BASE}/api/parties`, { headers: { 'Content-Type': 'application/json' } });
+                if (!response.ok) return;
+                const parties = await response.json();
+                const dataList = document.getElementById('partyList');
+                dataList.innerHTML = (parties || []).map((party) => `
+                    <option value="${party.name}" data-address="${(party.address || '').replace(/"/g, '&quot;')}"></option>
+                `).join('');
+            } catch (error) {
+                console.warn('Could not load party suggestions:', error);
+            }
+        }
+
+        function applyPartyAutocomplete() {
+            const input = document.getElementById('clientName');
+            const address = document.getElementById('clientAddress');
+            const selected = document.querySelector(`#partyList option[value="${CSS.escape(input.value)}"]`);
+            if (selected) {
+                address.value = selected.dataset.address || '';
+            }
+        }
+
+        function getDocTypeKey(docType) {
+            return docType === 'PURCHASE ORDER' ? 'insoft_last_po_no' : 'insoft_last_quotation_no';
+        }
+
+        function ensureDocumentRef() {
+            const docType = document.getElementById('docType').value;
+            const refInput = document.getElementById('refNo');
+            const currentValue = refInput.value.trim();
+            const key = getDocTypeKey(docType);
+            const today = new Date();
+            const year = today.getFullYear();
+            const lastValue = Number(localStorage.getItem(key) || 0);
+            const nextValue = lastValue + 1;
+
+            if (!currentValue || !currentValue.includes(docType === 'PURCHASE ORDER' ? 'PO/' : 'QT/')) {
+                refInput.value = `${docType === 'PURCHASE ORDER' ? 'PO' : 'QT'}/${year}/${String(nextValue).padStart(3, '0')}`;
+                localStorage.setItem(key, String(nextValue));
+            }
+        }
+
+        function togglePaymentDays() {
+            const type = document.getElementById('tc-payment-type').value;
+            const daysGroup = document.getElementById('tc-payment-days-group');
+            if (type === 'Days from delivery') {
+                daysGroup.style.display = 'flex';
+            } else {
+                daysGroup.style.display = 'none';
+            }
+        }
+
+        function formatCurrency(num) {
+            return "₹" + parseFloat(num).toLocaleString('en-IN', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatDate(dateInput) {
+            if (!dateInput) return "";
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateInput).toLocaleDateString('en-US', options);
+        }
+
+        function addItem() {
+            itemCount++;
+            const container = document.getElementById('items-container');
+            
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.id = `row-${itemCount}`;
+
+            row.innerHTML = `
+                <div class="input-group large" style="margin-bottom:0;">
+                    <label>Product Description</label>
+                    <input type="text" class="item-name" placeholder="e.g. MacBook Air 13&quot;" oninput="generatePreview()">
+                </div>
+                <div class="input-group" style="margin-bottom:0;">
+                    <label>Qty</label>
+                    <input type="number" class="item-qty" value="1" min="1" oninput="generatePreview()">
+                </div>
+                <div class="input-group" style="margin-bottom:0;">
+                    <label>Price (Ex. GST)</label>
+                    <input type="number" class="item-exgst" placeholder="0.00" oninput="calculateGST(this, 'ex')">
+                </div>
+                <div class="input-group" style="margin-bottom:0;">
+                    <label>Price (Inc. GST)</label>
+                    <input type="number" class="item-incgst" placeholder="0.00" oninput="calculateGST(this, 'inc')">
+                </div>
+                <button class="btn-remove" onclick="removeItem(${itemCount})">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeItem(id) {
+            const row = document.getElementById(`row-${id}`);
+            row.remove();
+            generatePreview();
+        }
+
+        function calculateGST(element, type) {
+            const row = element.closest('.input-row');
+            const exInput = row.querySelector('.item-exgst');
+            const incInput = row.querySelector('.item-incgst');
+
+            if (type === 'ex') {
+                const exValue = parseFloat(exInput.value);
+                if (!isNaN(exValue)) {
+                    incInput.value = (exValue * 1.18).toFixed(2);
+                } else {
+                    incInput.value = '';
+                }
+            } else if (type === 'inc') {
+                const incValue = parseFloat(incInput.value);
+                if (!isNaN(incValue)) {
+                    exInput.value = (incValue / 1.18).toFixed(2);
+                } else {
+                    exInput.value = '';
+                }
+            }
+            generatePreview();
+        }
+
+        function generatePreview() {
+            const cName = document.getElementById('clientName').value.trim();
+            const cAddress = document.getElementById('clientAddress').value.trim();
+            const clientBlock = document.getElementById('out-client-block');
+            const nameEl = document.getElementById('out-client-name');
+            const addressEl = document.getElementById('out-client-address');
+
+            const docType = document.getElementById('docType').value;
+            document.getElementById('out-doctitle').innerText = docType;
+            if (!document.getElementById('refNo').value.trim()) {
+                ensureDocumentRef();
+            }
+
+            if (docType === 'PURCHASE ORDER') {
+                document.getElementById('out-greeting-text').innerText = "Please process the following order items as per our commercial terms:";
+            } else {
+                document.getElementById('out-greeting-text').innerText = "Thank you for your interest in our services. Based on our discussions, please find our commercial proposal below:";
+            }
+
+            if (cName === "" && cAddress === "") {
+                clientBlock.style.display = 'none';
+            } else {
+                clientBlock.style.display = 'block';
+                nameEl.innerText = cName;
+                nameEl.style.display = cName ? 'block' : 'none';
+                addressEl.innerText = cAddress;
+                addressEl.style.display = cAddress ? 'block' : 'none';
+            }
+
+            const docDateValue = document.getElementById('docDate').value;
+            const validityDays = parseInt(document.getElementById('tc-validity').value) || 0;
+
+            let validDateFormatted = "";
+            if (docDateValue) {
+                const calculatedDate = new Date(docDateValue);
+                calculatedDate.setDate(calculatedDate.getDate() + validityDays);
+                validDateFormatted = formatDate(calculatedDate);
+            }
+
+            document.getElementById('out-ref').innerText = document.getElementById('refNo').value;
+            document.getElementById('out-date').innerText = formatDate(docDateValue);
+            document.getElementById('out-valid').innerText = validDateFormatted;
+
+            const deliveryDays = document.getElementById('tc-delivery').value || 1;
+            const paymentType = document.getElementById('tc-payment-type').value;
+
+            let paymentText = paymentType;
+            if (paymentType === 'Days from delivery') {
+                const payDays = document.getElementById('tc-payment-days').value || 15;
+                paymentText = `${payDays} Days from delivery`;
+            }
+
+            document.getElementById('out-tc-delivery').innerText = deliveryDays;
+            document.getElementById('out-tc-payment').innerText = paymentText;
+            document.getElementById('out-tc-validity').innerText = validityDays;
+
+            const rows = document.querySelectorAll('.input-row');
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = "";
+
+            let subtotal = 0;
+
+            rows.forEach((row, index) => {
+                const name = row.querySelector('.item-name').value || "Item " + (index + 1);
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const exGst = parseFloat(row.querySelector('.item-exgst').value) || 0;
+
+                const totalItemAmountExGst = exGst * qty;
+                subtotal += totalItemAmountExGst;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center">${index + 1}</td>
+                    <td>${name}</td>
+                    <td class="text-center">${qty}</td>
+                    <td class="text-right">${formatCurrency(exGst)}</td>
+                    <td class="text-right">${formatCurrency(totalItemAmountExGst)}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            const gstAmount = subtotal * 0.18;
+            const grandTotal = subtotal + gstAmount;
+
+            document.getElementById('out-subtotal').innerText = formatCurrency(subtotal);
+            document.getElementById('out-gst').innerText = formatCurrency(gstAmount);
+            document.getElementById('out-grandtotal').innerText = formatCurrency(grandTotal);
+        }
+
+        function downloadPDF() {
+            generatePreview();
+            const element = document.getElementById('print-area');
+            const appContainer = document.getElementById('app-container');
+
+            const refVal = document.getElementById('refNo').value;
+            const docType = document.getElementById('docType').value;
+            const key = getDocTypeKey(docType);
+            const currentSerial = Number((refVal.match(/(\d+)$/) || [])[0] || 0);
+
+            if (!Number.isNaN(currentSerial) && currentSerial > 0) {
+                localStorage.setItem(key, String(currentSerial));
+            }
+
+            appContainer.style.display = 'none';
+            window.scrollTo(0, 0);
+
+            const opt = {
+                margin:       10,
+                filename:     `${document.getElementById('docType').value.replace(' ', '_')}_${refVal.replace(/\//g, '-')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                appContainer.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
